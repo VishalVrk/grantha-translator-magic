@@ -33,6 +33,7 @@ export const extractTextFromImage = async (file: File): Promise<{
 
     // Parse the response with the new format
     const result = await response.json();
+    console.log("API response:", result); // Log the raw response
     return {
       text: result.grantha_text || "",
     };

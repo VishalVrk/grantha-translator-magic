@@ -1,4 +1,3 @@
-
 import React, { useState, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Upload, Image as ImageIcon, Loader2, FileText } from "lucide-react";
@@ -15,7 +14,6 @@ const ImageUploadSection: React.FC = () => {
   const [isProcessing, setIsProcessing] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Handle file selection
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = event.target.files?.[0];
     
@@ -23,7 +21,6 @@ const ImageUploadSection: React.FC = () => {
       return;
     }
     
-    // Check if file is an image
     if (!selectedFile.type.includes("image/")) {
       toast({
         title: "Invalid File",
@@ -36,7 +33,6 @@ const ImageUploadSection: React.FC = () => {
     setFile(selectedFile);
     setExtractedText("");
     
-    // Create and set preview
     const reader = new FileReader();
     reader.onload = (e) => {
       setImagePreview(e.target?.result as string);
@@ -44,7 +40,6 @@ const ImageUploadSection: React.FC = () => {
     reader.readAsDataURL(selectedFile);
   };
 
-  // Handle text extraction
   const handleExtractText = async () => {
     if (!file) {
       toast({
@@ -71,6 +66,7 @@ const ImageUploadSection: React.FC = () => {
       }
       
       setExtractedText(result.text);
+      console.log("Extracted text:", result.text);
       
       toast({
         title: "Text Extracted",
@@ -88,7 +84,6 @@ const ImageUploadSection: React.FC = () => {
     }
   };
 
-  // Handle file selection click
   const handleSelectFile = () => {
     fileInputRef.current?.click();
   };
@@ -238,13 +233,13 @@ const ImageUploadSection: React.FC = () => {
             transition={{ duration: 0.3 }}
           >
             <CardFooter className="flex-col items-start pt-4">
-              <div className="w-full p-4 bg-secondary/50 rounded-lg">
-                <h3 className="text-sm font-medium mb-2 text-muted-foreground">
+              <div className="w-full p-4 bg-secondary/50 rounded-lg border border-border/40">
+                <h3 className="text-sm font-medium mb-2 text-foreground">
                   Extracted Text:
                 </h3>
-                <div className="prose prose-sm max-w-none">
+                <div className="prose prose-sm max-w-none text-foreground">
                   {extractedText.split('\n').map((line, index) => (
-                    <p key={index}>{line || <br />}</p>
+                    <p key={index} className="text-foreground mb-2">{line || <br />}</p>
                   ))}
                 </div>
               </div>
