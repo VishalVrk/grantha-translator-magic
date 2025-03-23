@@ -129,11 +129,14 @@ const TransliterationForm: React.FC<TransliterationFormProps> = ({ onTranslitera
     setIsProcessing(true);
 
     try {
+      // Special handling for Grantha as source language
+      const actualSourceLanguage = sourceLanguage === "Grantha" ? "sa" : sourceLanguage;
+      
       const result = await translateText({
         text: inputText,
-        sourceLanguage,
+        sourceLanguage: actualSourceLanguage,
         targetLanguage,
-        sourceScript // Pass the source script to handle Grantha properly
+        sourceScript: sourceLanguage === "Grantha" ? "Grantha" : undefined
       });
 
       if (result.error) {
@@ -363,7 +366,9 @@ const TransliterationForm: React.FC<TransliterationFormProps> = ({ onTranslitera
               value={inputText}
               onChange={(e) => setInputText(e.target.value)}
               placeholder="Enter text to translate..."
-              className="min-h-[150px] pl-10 pr-4 py-3 resize-none transition-all duration-200 font-medium text-lg"
+              className={`min-h-[150px] pl-10 pr-4 py-3 resize-none transition-all duration-200 font-medium text-lg ${
+                sourceLanguage === "Grantha" ? getScriptClass("Grantha") : ""
+              }`}
             />
           </div>
 
@@ -411,7 +416,7 @@ const TransliterationForm: React.FC<TransliterationFormProps> = ({ onTranslitera
                   <SelectValue placeholder="Select target language" />
                 </SelectTrigger>
                 <SelectContent>
-                  {LANGUAGE_OPTIONS.map((option) => (
+                  {LANGUAGE_OPTIONS.filter(lang => lang.value !== "Grantha").map((option) => (
                     <SelectItem key={option.value} value={option.value}>
                       {option.label}
                     </SelectItem>

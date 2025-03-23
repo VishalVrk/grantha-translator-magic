@@ -1,3 +1,4 @@
+
 /**
  * Handles transliteration between different scripts and translation
  */
@@ -197,6 +198,7 @@ export const LANGUAGE_OPTIONS = [
   { value: "fr", label: "French" },
   { value: "es", label: "Spanish" },
   { value: "de", label: "German" },
+  { value: "Grantha", label: "Grantha" } // Added Grantha as a language option
 ];
 
 /**
