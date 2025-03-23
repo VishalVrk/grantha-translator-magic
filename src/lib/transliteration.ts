@@ -1,6 +1,6 @@
 
 /**
- * Handles transliteration between different scripts
+ * Handles transliteration between different scripts and translation
  */
 
 interface TransliterationParams {
@@ -11,6 +11,17 @@ interface TransliterationParams {
 
 interface TransliterationResult {
   transliteratedText: string;
+  error?: string;
+}
+
+interface TranslationParams {
+  text: string;
+  sourceLanguage: string;
+  targetLanguage: string;
+}
+
+interface TranslationResult {
+  translatedText: string;
   error?: string;
 }
 
@@ -47,6 +58,47 @@ export const transliterateText = async ({
 };
 
 /**
+ * Translate text using LibreTranslate API
+ */
+export const translateText = async ({
+  text,
+  sourceLanguage,
+  targetLanguage,
+}: TranslationParams): Promise<TranslationResult> => {
+  if (!text.trim()) {
+    return { translatedText: "", error: "Please enter some text to translate" };
+  }
+
+  try {
+    const response = await fetch("https://libretranslate.de/translate", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        q: text,
+        source: sourceLanguage,
+        target: targetLanguage,
+        format: "text",
+      }),
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const result = await response.json();
+    return { translatedText: result.translatedText };
+  } catch (error) {
+    console.error("Translation error:", error);
+    return {
+      translatedText: "",
+      error: "An error occurred during translation. Please try again.",
+    };
+  }
+};
+
+/**
  * Download text as a file
  */
 export const downloadTextAsFile = (text: string, filename = "output.txt"): void => {
@@ -75,6 +127,16 @@ export const SCRIPT_OPTIONS = [
   { value: "Tamil", label: "Tamil" },
   { value: "HK", label: "English (Roman)" },
   { value: "Devanagari", label: "Devanagari" }
+];
+
+export const LANGUAGE_OPTIONS = [
+  { value: "en", label: "English" },
+  { value: "ta", label: "Tamil" },
+  { value: "hi", label: "Hindi" },
+  { value: "sa", label: "Sanskrit" },
+  { value: "fr", label: "French" },
+  { value: "es", label: "Spanish" },
+  { value: "de", label: "German" },
 ];
 
 /**

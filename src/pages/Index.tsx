@@ -7,7 +7,7 @@ import ImageUploadSection from "@/components/ImageUploadSection";
 import { toast } from "@/components/ui/use-toast";
 
 const Index: React.FC = () => {
-  const [transliteratedText, setTransliteratedText] = useState("");
+  const [processedText, setProcessedText] = useState("");
   const [activeTab, setActiveTab] = useState("transliteration");
   const [isLoaded, setIsLoaded] = useState(false);
 
@@ -32,8 +32,8 @@ const Index: React.FC = () => {
     };
   }, []);
 
-  const handleTransliterationComplete = (text: string) => {
-    setTransliteratedText(text);
+  const handleProcessingComplete = (text: string) => {
+    setProcessedText(text);
   };
 
   return (
@@ -50,7 +50,7 @@ const Index: React.FC = () => {
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.5, delay: 0.3 }}
         >
-          Grantha Transliteration & Translation
+          Grantha Text Processing Tool
         </motion.h1>
         <motion.p 
           className="mt-2 text-muted-foreground max-w-xl mx-auto"
@@ -58,7 +58,7 @@ const Index: React.FC = () => {
           animate={{ opacity: 1 }}
           transition={{ duration: 0.5, delay: 0.4 }}
         >
-          A modern tool for transliterating between Grantha, Tamil, Devanagari, and Roman scripts
+          A modern tool for transliterating and translating between multiple languages and scripts
         </motion.p>
       </motion.header>
 
@@ -74,7 +74,7 @@ const Index: React.FC = () => {
           className="w-full"
         >
           <TabsList className="w-full max-w-md mx-auto grid grid-cols-2 mb-8">
-            <TabsTrigger value="transliteration">Transliteration</TabsTrigger>
+            <TabsTrigger value="transliteration">Text Processing</TabsTrigger>
             <TabsTrigger value="recognition">Character Recognition</TabsTrigger>
           </TabsList>
           
@@ -86,7 +86,7 @@ const Index: React.FC = () => {
               transition={{ duration: 0.3 }}
             >
               <div className="bg-white/80 backdrop-blur border border-border/40 rounded-xl p-6 shadow-sm">
-                <TransliterationForm onTransliterationComplete={handleTransliterationComplete} />
+                <TransliterationForm onTransliterationComplete={handleProcessingComplete} />
               </div>
             </motion.div>
           </TabsContent>
@@ -114,7 +114,7 @@ const Index: React.FC = () => {
       >
         <div className="container text-center text-sm text-muted-foreground">
           <p>
-            Grantha Transliteration Tool — Powered by Aksharamukha API & Teachable Machine
+            Grantha Text Processing Tool — Powered by Aksharamukha API, LibreTranslate & Teachable Machine
           </p>
         </div>
       </motion.footer>
