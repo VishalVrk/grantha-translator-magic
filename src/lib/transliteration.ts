@@ -7,6 +7,23 @@ interface TransliterationParams {
   text: string;
   sourceScript: string;
   targetScript: string;
+  options?: TransliterationOptions;
+}
+
+export interface TransliterationOptions {
+  disableUu?: boolean;
+  subscriptNumerals?: boolean;
+  markFirstVarga?: boolean;
+  removeApostrophe?: boolean;
+  removeDiacriticNumerals?: boolean;
+  oldOrthography?: boolean;
+  granthaVisarga?: boolean;
+  disableIlm?: boolean;
+  contextualNna?: boolean;
+  onlyWordFinalNna?: boolean;
+  nativeNumerals?: boolean;
+  useDandas?: boolean;
+  preserveSource?: boolean;
 }
 
 interface TransliterationResult {
@@ -32,15 +49,32 @@ export const transliterateText = async ({
   text,
   sourceScript,
   targetScript,
+  options = {},
 }: TransliterationParams): Promise<TransliterationResult> => {
   if (!text.trim()) {
     return { transliteratedText: "", error: "Please enter some text to transliterate" };
   }
 
   try {
-    const response = await fetch(
-      `https://aksharamukha-plugin.appspot.com/api/public?source=${sourceScript}&target=${targetScript}&text=${encodeURIComponent(text)}`
-    );
+    // Build the URL with all options
+    let apiUrl = `https://aksharamukha-plugin.appspot.com/api/public?source=${sourceScript}&target=${targetScript}&text=${encodeURIComponent(text)}`;
+    
+    // Add options to the URL if they are specified
+    if (options.disableUu) apiUrl += "&disableUu=true";
+    if (options.subscriptNumerals) apiUrl += "&subscriptNumerals=true";
+    if (options.markFirstVarga) apiUrl += "&markFirstVarga=true";
+    if (options.removeApostrophe) apiUrl += "&removeApostrophe=true";
+    if (options.removeDiacriticNumerals) apiUrl += "&removeDiacriticNumerals=true";
+    if (options.oldOrthography) apiUrl += "&oldOrthography=true";
+    if (options.granthaVisarga) apiUrl += "&granthaVisarga=true";
+    if (options.disableIlm) apiUrl += "&disableIlm=true";
+    if (options.contextualNna) apiUrl += "&contextualNna=true";
+    if (options.onlyWordFinalNna) apiUrl += "&onlyWordFinalNna=true";
+    if (options.nativeNumerals) apiUrl += "&nativeNumerals=true";
+    if (options.useDandas) apiUrl += "&useDandas=true";
+    if (options.preserveSource) apiUrl += "&preserveSource=true";
+    
+    const response = await fetch(apiUrl);
     
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
@@ -140,6 +174,77 @@ export const LANGUAGE_OPTIONS = [
 ];
 
 /**
+ * Aksharamukha Transliteration Options
+ */
+export const TRANSLITERATION_OPTIONS = [
+  { 
+    id: "disableUu", 
+    label: "Disable ūṃ", 
+    description: "ūṃ → ūṁ²" 
+  },
+  { 
+    id: "subscriptNumerals", 
+    label: "Subscript numerals", 
+    description: "क¹क²क³ → क₁क₂क₃" 
+  },
+  { 
+    id: "markFirstVarga", 
+    label: "Mark the first varga", 
+    description: "தி³பம் → தி³பம்" 
+  },
+  { 
+    id: "removeApostrophe", 
+    label: "Remove apostrophe", 
+    description: "ருʼம் → ரும்" 
+  },
+  { 
+    id: "removeDiacriticNumerals", 
+    label: "Remove diacritic numerals", 
+    description: "க¹க²க³ → ககக" 
+  },
+  { 
+    id: "oldOrthography", 
+    label: "Old orthography", 
+    description: "லை னா → லை (லை)" 
+  },
+  { 
+    id: "granthaVisarga", 
+    label: "Grantha Visarga", 
+    description: "நம: → நம꞉" 
+  },
+  { 
+    id: "disableIlm", 
+    label: "Disable ஃ", 
+    description: "ஃ → ஂ" 
+  },
+  { 
+    id: "contextualNna", 
+    label: "Contextual ன", 
+    description: "(Experimental) ப்ரவய → ப்ரனய" 
+  },
+  { 
+    id: "onlyWordFinalNna", 
+    label: "Only word-final ன", 
+    description: "ஆனனன் → ஆநன்" 
+  },
+  { 
+    id: "nativeNumerals", 
+    label: "Native numerals", 
+    description: "Use native numerals in output script" 
+  },
+  { 
+    id: "useDandas", 
+    label: "Use dandas", 
+    description: "Use dandas for punctuation" 
+  },
+  { 
+    id: "preserveSource", 
+    label: "Preserve source", 
+    description: "mamtana → மம்³தந not மந்தன" 
+  },
+];
+
+/**
  * Get the appropriate CSS class for a script
  */
 export const getScriptClass = (script: string): string => {
@@ -152,3 +257,4 @@ export const getScriptClass = (script: string): string => {
   
   return scriptMap[script] || "";
 };
+

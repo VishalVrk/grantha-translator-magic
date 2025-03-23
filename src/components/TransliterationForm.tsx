@@ -1,19 +1,24 @@
 
 import React, { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowLeftRight, Languages, FileDown, Globe } from "lucide-react";
+import { ArrowLeftRight, Languages, FileDown, Globe, Settings } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Switch } from "@/components/ui/switch";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { toast } from "@/components/ui/use-toast";
 import { 
   transliterateText, 
   translateText,
   SCRIPT_OPTIONS, 
   LANGUAGE_OPTIONS,
+  TRANSLITERATION_OPTIONS,
   getScriptClass, 
-  downloadTextAsFile 
+  downloadTextAsFile,
+  TransliterationOptions
 } from "@/lib/transliteration";
 
 interface TransliterationFormProps {
@@ -29,6 +34,8 @@ const TransliterationForm: React.FC<TransliterationFormProps> = ({ onTranslitera
   const [isProcessing, setIsProcessing] = useState(false);
   const [outputText, setOutputText] = useState("");
   const [activeTab, setActiveTab] = useState("transliterate");
+  const [options, setOptions] = useState<TransliterationOptions>({});
+  const [showOptions, setShowOptions] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   // Adjust textarea height based on content
@@ -38,6 +45,14 @@ const TransliterationForm: React.FC<TransliterationFormProps> = ({ onTranslitera
       textareaRef.current.style.height = `${textareaRef.current.scrollHeight}px`;
     }
   }, [inputText]);
+
+  // Handle option change
+  const handleOptionChange = (optionId: keyof TransliterationOptions, value: boolean) => {
+    setOptions(prev => ({
+      ...prev,
+      [optionId]: value
+    }));
+  };
 
   // Swap source and target scripts
   const handleSwapScripts = () => {
@@ -68,7 +83,8 @@ const TransliterationForm: React.FC<TransliterationFormProps> = ({ onTranslitera
       const result = await transliterateText({
         text: inputText,
         sourceScript,
-        targetScript
+        targetScript,
+        options
       });
 
       if (result.error) {
@@ -262,6 +278,79 @@ const TransliterationForm: React.FC<TransliterationFormProps> = ({ onTranslitera
                 </SelectContent>
               </Select>
             </div>
+          </div>
+
+          {/* Transliteration Options Button */}
+          <div className="flex justify-end">
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  className="flex items-center gap-2 text-muted-foreground"
+                >
+                  <Settings size={16} />
+                  Output Options ({Object.values(options).filter(Boolean).length} active)
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-96 p-4" align="end">
+                <h3 className="text-sm font-medium mb-3">Transliteration Options</h3>
+                <div className="space-y-4 max-h-[400px] overflow-y-auto pr-2">
+                  {TRANSLITERATION_OPTIONS.slice(0, 10).map((option) => (
+                    <div key={option.id} className="flex items-start space-x-2">
+                      <Checkbox 
+                        id={option.id} 
+                        checked={!!options[option.id as keyof TransliterationOptions]}
+                        onCheckedChange={(checked) => 
+                          handleOptionChange(
+                            option.id as keyof TransliterationOptions, 
+                            checked as boolean
+                          )
+                        }
+                      />
+                      <div className="grid gap-1.5 leading-none">
+                        <label
+                          htmlFor={option.id}
+                          className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                        >
+                          {option.label}
+                        </label>
+                        <p className="text-xs text-muted-foreground">
+                          {option.description}
+                        </p>
+                      </div>
+                    </div>
+                  ))}
+                  
+                  {/* Switch options for the bottom three */}
+                  {TRANSLITERATION_OPTIONS.slice(10).map((option) => (
+                    <div key={option.id} className="flex items-center justify-between">
+                      <div className="space-y-0.5">
+                        <label
+                          htmlFor={option.id}
+                          className="text-sm font-medium"
+                        >
+                          {option.label}
+                        </label>
+                        <p className="text-xs text-muted-foreground">
+                          {option.description}
+                        </p>
+                      </div>
+                      <Switch
+                        id={option.id}
+                        checked={!!options[option.id as keyof TransliterationOptions]}
+                        onCheckedChange={(checked) => 
+                          handleOptionChange(
+                            option.id as keyof TransliterationOptions, 
+                            checked
+                          )
+                        }
+                      />
+                    </div>
+                  ))}
+                </div>
+              </PopoverContent>
+            </Popover>
           </div>
         </TabsContent>
 
