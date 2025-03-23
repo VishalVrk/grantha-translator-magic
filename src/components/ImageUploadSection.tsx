@@ -242,8 +242,10 @@ const ImageUploadSection: React.FC = () => {
                 <h3 className="text-sm font-medium mb-2 text-muted-foreground">
                   Extracted Text:
                 </h3>
-                <div className="font-tamil text-lg">
-                  {extractedText}
+                <div className="prose prose-sm max-w-none">
+                  {extractedText.split('\n').map((line, index) => (
+                    <p key={index}>{line || <br />}</p>
+                  ))}
                 </div>
               </div>
             </CardFooter>

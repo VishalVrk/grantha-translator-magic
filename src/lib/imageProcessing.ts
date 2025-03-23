@@ -31,10 +31,10 @@ export const extractTextFromImage = async (file: File): Promise<{
       throw new Error(`API error: ${response.status} ${response.statusText}`);
     }
 
-    // Parse the response
+    // Parse the response with the new format
     const result = await response.json();
     return {
-      text: result.extracted_text || "",
+      text: result.grantha_text || "",
     };
   } catch (error) {
     console.error("Text extraction error:", error);
