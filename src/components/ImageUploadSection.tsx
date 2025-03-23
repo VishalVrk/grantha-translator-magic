@@ -1,46 +1,19 @@
 
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Upload, Image as ImageIcon, Loader2 } from "lucide-react";
+import { Upload, Image as ImageIcon, Loader2, FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "@/components/ui/use-toast";
-import { loadModel, predictCharacter } from "@/lib/imageProcessing";
+import { extractTextFromImage } from "@/lib/imageProcessing";
 
 const ImageUploadSection: React.FC = () => {
   const [file, setFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
-  const [prediction, setPrediction] = useState<{ character: string; probability: number } | null>(null);
-  const [isModelLoaded, setIsModelLoaded] = useState(false);
+  const [extractedText, setExtractedText] = useState<string>("");
   const [isLoading, setIsLoading] = useState(false);
-  const [isPredicting, setIsPredicting] = useState(false);
-  const imageRef = useRef<HTMLImageElement>(null);
+  const [isProcessing, setIsProcessing] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
-
-  // Load model on component mount
-  useEffect(() => {
-    const initModel = async () => {
-      setIsLoading(true);
-      const loaded = await loadModel();
-      setIsModelLoaded(loaded);
-      setIsLoading(false);
-      
-      if (loaded) {
-        toast({
-          title: "Model Loaded",
-          description: "Character recognition model is ready to use.",
-        });
-      } else {
-        toast({
-          title: "Model Loading Failed",
-          description: "Failed to load character recognition model. Image prediction may not work.",
-          variant: "destructive"
-        });
-      }
-    };
-    
-    initModel();
-  }, []);
 
   // Handle file selection
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -61,7 +34,7 @@ const ImageUploadSection: React.FC = () => {
     }
     
     setFile(selectedFile);
-    setPrediction(null);
+    setExtractedText("");
     
     // Create and set preview
     const reader = new FileReader();
@@ -71,18 +44,9 @@ const ImageUploadSection: React.FC = () => {
     reader.readAsDataURL(selectedFile);
   };
 
-  // Handle prediction
-  const handlePredict = async () => {
-    if (!isModelLoaded) {
-      toast({
-        title: "Model Not Ready",
-        description: "The character recognition model is not loaded yet. Please wait.",
-        variant: "destructive"
-      });
-      return;
-    }
-    
-    if (!imageRef.current || !imagePreview) {
+  // Handle text extraction
+  const handleExtractText = async () => {
+    if (!file) {
       toast({
         title: "No Image",
         description: "Please upload an image first.",
@@ -91,38 +55,36 @@ const ImageUploadSection: React.FC = () => {
       return;
     }
     
-    setIsPredicting(true);
+    setIsProcessing(true);
     
     try {
-      const result = await predictCharacter(imageRef.current);
+      const result = await extractTextFromImage(file);
       
       if (result.error) {
         toast({
-          title: "Prediction Error",
+          title: "Extraction Error",
           description: result.error,
           variant: "destructive"
         });
+        setIsProcessing(false);
         return;
       }
       
-      setPrediction({
-        character: result.character,
-        probability: result.probability
-      });
+      setExtractedText(result.text);
       
       toast({
-        title: "Prediction Complete",
-        description: "Character has been identified.",
+        title: "Text Extracted",
+        description: "Text has been successfully extracted from the image.",
       });
     } catch (error) {
-      console.error("Prediction error:", error);
+      console.error("Extraction error:", error);
       toast({
         title: "Error",
-        description: "An unexpected error occurred during prediction.",
+        description: "An unexpected error occurred during text extraction.",
         variant: "destructive"
       });
     } finally {
-      setIsPredicting(false);
+      setIsProcessing(false);
     }
   };
 
@@ -136,10 +98,10 @@ const ImageUploadSection: React.FC = () => {
       <CardHeader className="pb-4">
         <CardTitle className="text-xl flex items-center gap-2">
           <ImageIcon size={20} className="text-primary" />
-          Character Recognition
+          Text Extraction
         </CardTitle>
         <CardDescription>
-          Upload an image of a character to identify it using AI
+          Upload an image containing Grantha text to extract its content
         </CardDescription>
       </CardHeader>
       
@@ -156,7 +118,7 @@ const ImageUploadSection: React.FC = () => {
             >
               <Loader2 className="h-8 w-8 animate-spin text-primary" />
               <p className="mt-4 text-sm text-muted-foreground">
-                Loading character recognition model...
+                Loading text extraction service...
               </p>
             </motion.div>
           ) : (
@@ -192,19 +154,12 @@ const ImageUploadSection: React.FC = () => {
                         className="relative rounded-md overflow-hidden"
                       >
                         <motion.img
-                          ref={imageRef}
                           src={imagePreview}
-                          alt="Uploaded character"
+                          alt="Uploaded image"
                           className="w-full h-auto object-contain max-h-[200px]"
                           initial={{ filter: "blur(8px)" }}
                           animate={{ filter: "blur(0px)" }}
                           transition={{ duration: 0.5 }}
-                          onLoad={() => {
-                            // Ensure image is fully loaded
-                            if (imageRef.current) {
-                              imageRef.current.crossOrigin = "anonymous";
-                            }
-                          }}
                         />
                       </motion.div>
                       
@@ -244,11 +199,11 @@ const ImageUploadSection: React.FC = () => {
                     transition={{ duration: 0.3 }}
                   >
                     <Button
-                      onClick={handlePredict}
-                      disabled={!isModelLoaded || isPredicting}
+                      onClick={handleExtractText}
+                      disabled={isProcessing}
                       className="w-full"
                     >
-                      {isPredicting ? (
+                      {isProcessing ? (
                         <>
                           <span className="mr-2">
                             <motion.div
@@ -257,10 +212,13 @@ const ImageUploadSection: React.FC = () => {
                               className="w-4 h-4 border-2 border-white border-t-transparent rounded-full"
                             />
                           </span>
-                          Analyzing...
+                          Processing...
                         </>
                       ) : (
-                        "Identify Character"
+                        <>
+                          <FileText className="w-4 h-4 mr-2" />
+                          Extract Text
+                        </>
                       )}
                     </Button>
                   </motion.div>
@@ -272,7 +230,7 @@ const ImageUploadSection: React.FC = () => {
       </CardContent>
       
       <AnimatePresence>
-        {prediction && (
+        {extractedText && (
           <motion.div
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: "auto" }}
@@ -282,15 +240,10 @@ const ImageUploadSection: React.FC = () => {
             <CardFooter className="flex-col items-start pt-4">
               <div className="w-full p-4 bg-secondary/50 rounded-lg">
                 <h3 className="text-sm font-medium mb-2 text-muted-foreground">
-                  Prediction Result:
+                  Extracted Text:
                 </h3>
-                <div className="flex justify-between items-center">
-                  <div className="text-4xl font-tamil">
-                    {prediction.character}
-                  </div>
-                  <div className="text-sm text-muted-foreground">
-                    Confidence: {Math.round(prediction.probability * 100)}%
-                  </div>
+                <div className="font-tamil text-lg">
+                  {extractedText}
                 </div>
               </div>
             </CardFooter>

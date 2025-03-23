@@ -75,7 +75,7 @@ const Index: React.FC = () => {
         >
           <TabsList className="w-full max-w-md mx-auto grid grid-cols-2 mb-8">
             <TabsTrigger value="transliteration">Text Processing</TabsTrigger>
-            <TabsTrigger value="recognition">Character Recognition</TabsTrigger>
+            <TabsTrigger value="recognition">Text Extraction</TabsTrigger>
           </TabsList>
           
           <TabsContent value="transliteration" className="mt-0 focus-visible:outline-none focus-visible:ring-0">
