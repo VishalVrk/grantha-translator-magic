@@ -132,7 +132,8 @@ const TransliterationForm: React.FC<TransliterationFormProps> = ({ onTranslitera
       const result = await translateText({
         text: inputText,
         sourceLanguage,
-        targetLanguage
+        targetLanguage,
+        sourceScript // Pass the source script to handle Grantha properly
       });
 
       if (result.error) {

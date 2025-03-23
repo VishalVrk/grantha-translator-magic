@@ -58,7 +58,7 @@ const Index: React.FC = () => {
           animate={{ opacity: 1 }}
           transition={{ duration: 0.5, delay: 0.4 }}
         >
-          A modern tool for transliterating and translating between multiple languages and scripts
+          A modern tool for transliterating and translating the Grantha Script
         </motion.p>
       </motion.header>
 
@@ -113,9 +113,7 @@ const Index: React.FC = () => {
         className="py-6 border-t border-border/40 bg-white/50 backdrop-blur-sm"
       >
         <div className="container text-center text-sm text-muted-foreground">
-          <p>
-            Grantha Text Processing Tool — Powered by Aksharamukha API, LibreTranslate & Teachable Machine
-          </p>
+          {/* Footer text removed as requested */}
         </div>
       </motion.footer>
     </div>

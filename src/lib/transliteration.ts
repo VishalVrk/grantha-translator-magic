@@ -1,4 +1,3 @@
-
 /**
  * Handles transliteration between different scripts and translation
  */
@@ -35,6 +34,7 @@ interface TranslationParams {
   text: string;
   sourceLanguage: string;
   targetLanguage: string;
+  sourceScript?: string;
 }
 
 interface TranslationResult {
@@ -93,24 +93,50 @@ export const transliterateText = async ({
 
 /**
  * Translate text using LibreTranslate API
+ * For Grantha script, it first transliterates to an intermediate script
  */
 export const translateText = async ({
   text,
   sourceLanguage,
   targetLanguage,
+  sourceScript,
 }: TranslationParams): Promise<TranslationResult> => {
   if (!text.trim()) {
     return { translatedText: "", error: "Please enter some text to translate" };
   }
 
   try {
+    let textToTranslate = text;
+    
+    // Handle Grantha script translation by first transliterating to a language LibreTranslate understands
+    if (sourceScript === "Grantha") {
+      // Determine which script to transliterate to based on the source language
+      let intermediateScript = "Tamil";
+      if (sourceLanguage === "hi" || sourceLanguage === "sa") {
+        intermediateScript = "Devanagari";
+      }
+      
+      // Transliterate from Grantha to the intermediate script
+      const transliterationResult = await transliterateText({
+        text,
+        sourceScript: "Grantha",
+        targetScript: intermediateScript
+      });
+      
+      if (transliterationResult.error) {
+        return { translatedText: "", error: transliterationResult.error };
+      }
+      
+      textToTranslate = transliterationResult.transliteratedText;
+    }
+
     const response = await fetch("https://libretranslate.de/translate", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        q: text,
+        q: textToTranslate,
         source: sourceLanguage,
         target: targetLanguage,
         format: "text",
@@ -257,4 +283,3 @@ export const getScriptClass = (script: string): string => {
   
   return scriptMap[script] || "";
 };
-
